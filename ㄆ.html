@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浪费时间APP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            cursor: pointer;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #4CAF50;
+            color: white;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn.stop {
+            background-color: #f44336;
+        }
+
+        .floating-object {
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.3s ease-out;
+            opacity: 0.8;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 50;
+            max-width: 80%;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            z-index: 101;
+        }
+
+        .settings-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .setting-item {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app-container">
+        <div class="header">
+            <h1>浪费时间APP</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="time-spent">00:00</div>
+                    <div class="stat-label">已浪费时间</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="clicks">0</div>
+                    <div class="stat-label">点击次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="cps">0</div>
+                    <div class="stat-label">每秒点击</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="message" id="start-message">
+            <p>点击开始按钮，开始浪费时间！</p>
+            <p>点击屏幕上出现的彩色圆圈</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="start-btn">开始浪费时间</button>
+            <button class="btn stop" id="stop-btn" style="display: none;">停止</button>
+            <button class="btn" id="settings-btn">设置</button>
+        </div>
+
+        <div class="settings-panel" id="settings-panel" style="display: none;">
+            <div class="settings-title">设置</div>
+            <div class="setting-item">
+                <label for="speed">生成速度: </label>
+                <select id="speed">
+                    <option value="slow">慢</option>
+                    <option value="medium" selected>中</option>
+                    <option value="fast">快</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="size">大小: </label>
+                <select id="size">
+                    <option value="small">小</option>
+                    <option value="medium" selected>中</option>
+                    <option value="large">大</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const appContainer = document.getElementById('app-container');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsPanel = document.getElementById('settings-panel');
+        const startMessage = document.getElementById('start-message');
+        const timeSpentEl = document.getElementById('time-spent');
+        const clicksEl = document.getElementById('clicks');
+        const cpsEl = document.getElementById('cps');
+        const speedSelect = document.getElementById('speed');
+        const sizeSelect = document.getElementById('size');
+
+        // 游戏状态
+        let isPlaying = false;
+        let gameInterval;
+        let startTime;
+        let clicks = 0;
+        let lastClickTime = 0;
+        let clickTimes = [];
+
+        // 设置
+        let spawnSpeed = 1000; // ms
+        let objectSize = 50; // px
+
+        // 更新设置
+        function updateSettings() {
+            const speed = speedSelect.value;
+            const size = sizeSelect.value;
+
+            switch(speed) {
+                case 'slow': spawnSpeed = 2000; break;
+                case 'medium': spawnSpeed = 1000; break;
+                case 'fast': spawnSpeed = 500; break;
+            }
+
+            switch(size) {
+                case 'small': objectSize = 30; break;
+                case 'medium': objectSize = 50; break;
+                case 'large': objectSize = 80; break;
+            }
+
+            // 如果游戏正在进行，重新启动生成间隔
+            if (isPlaying) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(createFloatingObject, spawnSpeed);
+            }
+        }
+
+        // 创建随机漂浮物体
+        function createFloatingObject() {
+            if (!isPlaying) return;
+
+            const object = document.createElement('div');
+            object.className = 'floating-object';
+
+            // 随机大小（基于设置的基础大小）
+            const size = objectSize * (0.5 + Math.random());
+            object.style.width = `${size}px`;
+            object.style.height = `${size}px`;
+
+            // 随机颜色
+            const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            object.style.backgroundColor = color;
+
+            // 随机位置（确保物体完全在视窗内）
+            const maxX = window.innerWidth - size;
+            const maxY = window.innerHeight - size;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            object.style.left = `${x}px`;
+            object.style.top = `${y}px`;
+
+            // 随机不透明度
+            object.style.opacity = 0.5 + Math.random() * 0.5;
+
+            // 添加点击事件
+            object.addEventListener('click', () => {
+                handleObjectClick(object);
+            });
+
+            // 添加到容器
+            appContainer.appendChild(object);
+
+            // 设置自动消失时间（3-7秒）
+            const lifetime = 3000 + Math.random() * 4000;
+            setTimeout(() => {
+                if (appContainer.contains(object)) {
+                    object.style.transform = 'scale(0)';
+                    setTimeout(() => object.remove(), 300);
+                }
+            }, lifetime);
+        }
+
+        // 处理物体点击
+        function handleObjectClick(object) {
+            if (!isPlaying) return;
+
+            // 更新点击统计
+            clicks++;
+            clicksEl.textContent = clicks;
+
+            // 计算每秒点击数
+            const now = Date.now();
+            clickTimes.push(now);
+            // 只保留最近10秒内的点击
+            clickTimes = clickTimes.filter(time => now - time < 10000);
+            // 计算最近10秒的平均每秒点击数
+            const cps = (clickTimes.length / 10).toFixed(1);
+            cpsEl.textContent = cps;
+
+            // 添加点击效果
+            object.style.transform = 'scale(1.5)';
+            object.style.opacity = 1;
+
+            // 移除物体
+            setTimeout(() => {
+                object.style.transform = 'scale(0)';
+                setTimeout(() => object.remove(), 300);
+            }, 100);
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+            const seconds = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+            timeSpentEl.textContent = `${minutes}:${seconds}`;
+        }
+
+        // 开始游戏
+        function startGame() {
+            isPlaying = true;
+            startTime = Date.now();
+            clicks = 0;
+            clickTimes = [];
+            clicksEl.textContent = '0';
+            cpsEl.textContent = '0';
+
+            // 隐藏开始消息
+            startMessage.style.display = 'none';
+
+            // 显示/隐藏按钮
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            settingsBtn.style.display = 'none';
+            settingsPanel.style.display = 'none';
+
+            // 开始生成物体
+            gameInterval = setInterval(createFloatingObject, spawnSpeed);
+
+            // 开始计时器
+            setInterval(updateTimer, 1000);
+            updateTimer();
+
+            // 初始生成一些物体
+            for (let i = 0; i < 5; i++) {
+                setTimeout(createFloatingObject, i * 200);
+            }
+        }
+
+        // 停止游戏
+        function stopGame() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+
+            // 显示开始消息
+            startMessage.style.display = 'block';
+            startMessage.innerHTML = `<p>你成功浪费了 <b>${timeSpentEl.textContent}</b> 的时间!</p><p>点击了 <b>${clicks}</b> 次</p><p>平均每秒点击 <b>${cpsEl.textContent}</b> 次</p>`;
+
+            // 显示/隐藏按钮
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            settingsBtn.style.display = 'inline-block';
+
+            // 移除所有物体
+            document.querySelectorAll('.floating-object').forEach(obj => obj.remove());
+        }
+
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        stopBtn.addEventListener('click', stopGame);
+        settingsBtn.addEventListener('click', () => {
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+        speedSelect.addEventListener('change', updateSettings);
+        sizeSelect.addEventListener('change', updateSettings);
+
+        // 点击空白处关闭设置面板
+        document.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+                settingsPanel.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
