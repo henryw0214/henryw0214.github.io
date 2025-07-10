@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图画生成器</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .drawing-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #canvas {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background-color: white;
+            cursor: crosshair;
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .color-presets {
+            display: flex;
+            gap: 5px;
+            margin: 5px;
+        }
+        .color-preset {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .color-preset:hover {
+            transform: scale(1.1);
+        }
+        .color-preset.active {
+            border-color: #333;
+        }
+        .background-control {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        button, input[type="color"], input[type="range"] {
+            margin: 5px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="drawing-container">
+        <h1>图画生成器</h1>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div class="controls">
+            <input type="color" id="color-picker" value="#000000">
+            <div class="color-presets">
+                <div class="color-preset active" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-preset" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
+                <div class="color-preset" style="background-color: #3498db;" data-color="#3498db"></div>
+                <div class="color-preset" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
+                <div class="color-preset" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
+                <div class="color-preset" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
+                <div class="color-preset" style="background-color: #e67e22;" data-color="#e67e22"></div>
+                <div class="color-preset" style="background-color: #1abc9c;" data-color="#1abc9c"></div>
+            </div>
+            <input type="range" id="brush-size" min="1" max="50" value="5">
+            <div class="background-control">
+                <label for="bg-color">背景色:</label>
+                <input type="color" id="bg-color" value="#ffffff">
+            </div>
+            <button id="clear-btn">清空画布</button>
+            <button id="save-btn">保存图片</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('color-picker');
+        const brushSize = document.getElementById('brush-size');
+        const clearBtn = document.getElementById('clear-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const bgColorPicker = document.getElementById('bg-color');
+        const colorPresets = document.querySelectorAll('.color-preset');
+
+        // 设置初始背景色
+        canvas.style.backgroundColor = bgColorPicker.value;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // 设置画笔初始属性
+        ctx.strokeStyle = colorPicker.value;
+        ctx.lineWidth = brushSize.value;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // 绘图事件监听
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // 颜色和画笔大小变化监听
+        colorPicker.addEventListener('input', (e) => {
+            ctx.strokeStyle = e.target.value;
+        });
+
+        brushSize.addEventListener('input', (e) => {
+            ctx.lineWidth = e.target.value;
+        });
+
+        // 背景色变化监听
+        bgColorPicker.addEventListener('input', (e) => {
+            canvas.style.backgroundColor = e.target.value;
+        });
+
+        // 预设颜色点击事件
+        colorPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const color = preset.getAttribute('data-color');
+                colorPicker.value = color;
+                ctx.strokeStyle = color;
+                
+                // 更新活跃状态
+                colorPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+            });
+        });
+
+        // 颜色选择器变化时更新预设活跃状态
+        colorPicker.addEventListener('input', (e) => {
+            const color = e.target.value;
+            ctx.strokeStyle = color;
+            
+            // 检查是否有匹配的预设颜色
+            const matchingPreset = Array.from(colorPresets).find(p => p.getAttribute('data-color') === color);
+            if (matchingPreset) {
+                colorPresets.forEach(p => p.classList.remove('active'));
+                matchingPreset.classList.add('active');
+            } else {
+                colorPresets.forEach(p => p.classList.remove('active'));
+            }
+        });
+
+        // 清空画布
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // 保存图片
+        saveBtn.addEventListener('click', () => {
+            // 创建临时canvas用于包含背景色
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 先绘制背景色
+            tempCtx.fillStyle = canvas.style.backgroundColor || '#ffffff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 再绘制原有内容
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // 从临时canvas生成图片数据
+            const dataURL = tempCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = dataURL;
+            link.click();
+        });
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+    </script>
+</body>
+</html>
