@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>感恩日记 - 记录生活中的小确幸</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        header {
+            background: linear-gradient(135deg, #FFC107, #FF9800);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #FF9800;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .card-header i {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .gratitude-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 150px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        textarea:focus {
+            border-color: #FF9800;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-group {
+            flex: 1;
+        }
+        select, input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        .btn {
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #F57C00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
+        }
+        .gratitude-entries {
+            margin-top: 20px;
+        }
+        .entry {
+            background-color: #FFF8E1;
+            border-left: 4px solid #FFC107;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+        .entry:hover {
+            transform: translateX(5px);
+        }
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .entry-date {
+            color: #F57C00;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .entry-category {
+            background-color: #FFECB3;
+            color: #E65100;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .entry-content {
+            color: #5D4037;
+            line-height: 1.7;
+        }
+        .gratitude-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: #FFF8E1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #F57C00;
+            margin: 10px 0;
+        }
+        .stat-label {
+            color: #6D4C41;
+            font-size: 0.9rem;
+        }
+        .gratitude-prompts {
+            margin-top: 15px;
+        }
+        .prompt-item {
+            background-color: #FFF8E1;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        .prompt-item:hover {
+            border-left-color: #FFC107;
+            background-color: #FFF3E0;
+        }
+        .quote-section {
+            text-align: center;
+            padding: 25px;
+            background-color: #FFF8E1;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .quote-text {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: #5D4037;
+            margin-bottom: 10px;
+        }
+        .quote-author {
+            color: #F57C00;
+            font-weight: bold;
+        }
+        .monthly-view {
+            margin-top: 20px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        .calendar-day.has-entry::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #FF9800;
+        }
+        .calendar-day.today {
+            border: 2px solid #FF9800;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            color: #757575;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .gratitude-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>感恩日记</h1>
+        <p class="subtitle">记录生活中的小确幸，培养感恩之心</p>
+    </header>
+
+    <div class="container">
+        <!-- 感恩语录 -->
+        <div class="quote-section">
+            <div class="quote-text" id="gratitudeQuote">
+                感恩是幸福的源泉，它让我们在平凡中发现不凡。
+            </div>
+            <div class="quote-author">— 感恩日记</div>
+            <button class="btn" onclick="newGratitudeQuote()" style="margin-top: 15px;">
+                <i class="fas fa-sync-alt"></i> 换一句
+            </button>
+        </div>
+
+        <!-- 今日感恩记录 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-heart"></i> 今日感恩
+            </div>
+            <div class="card-body">
+                <form class="gratitude-form" id="gratitudeForm">
+                    <textarea id="gratitudeContent" placeholder="今天，有什么事情让你感到感恩？
+
+例如：
+- 感谢朋友今天的帮助
+- 感谢阳光明媚的好天气
+- 感谢家人准备的晚餐
+- 感谢自己今天的努力..." required></textarea>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <select id="gratitudeCategory" required>
+                                <option value="">选择感恩类别</option>
+                                <option value="人际关系">人际关系</option>
+                                <option value="健康身体">健康身体</option>
+                                <option value="工作学习">工作学习</option>
+                                <option value="自然环境">自然环境</option>
+                                <option value="物质生活">物质生活</option>
+                                <option value="自我成长">自我成长</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="gratitudeDate" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> 保存感恩记录
+                    </button>
+                </form>
+
+                <!-- 感恩提示 -->
+                <div style="margin-top: 20px;">
+                    <p style="font-weight: bold; margin-bottom: 10px; color: #F57C00;">感恩提示：</p>
+                    <div class="gratitude-prompts">
+                        <div class="prompt-item" onclick="usePrompt('今天遇到的一个善良举动是什么？')">今天遇到的一个善良举动是什么？</div>
+                        <div class="prompt-item" onclick="usePrompt('有什么事情让你今天感到特别开心？')">有什么事情让你今天感到特别开心？</div>
+                        <div class="prompt-item" onclick="usePrompt('你拥有什么别人可能没有的优势或资源？')">你拥有什么别人可能没有的优势或资源？</div>
+                        <div class="prompt-item" onclick="usePrompt('今天学到了什么新知识或技能？')">今天学到了什么新知识或技能？</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 感恩统计 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie"></i> 感恩统计
+            </div>
+            <div class="card-body">
+                <div class="gratitude-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">总感恩记录</div>
+                        <div class="stat-value" id="totalEntries">0</div>
+                        <div class="stat-label">条</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">连续感恩</div>
+                        <div class="stat-value" id="streakDays">0</div>
+                        <div class="stat-label">天</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">本月感恩</div>
+                        <div class="stat-value" id="monthEntries">0</div>
+                        <div class="stat-label">条</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">最感恩类别</div>
+                        <div class="stat-value" id="topCategory">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 月度视图 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar"></i> 月度感恩视图
+            </div>
+            <div class="card-body">
+                <div class="calendar-header">
+                    <h3 id="currentMonth">2023年11月</h3>
+                    <div>
+                        <button class="btn" style="padding: 5px 10px; margin-right: 5px;" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn" style="padding: 5px 10px;" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- 日历格子将通过JS生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 感恩记录列表 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i> 感恩记录
+            </div>
+            <div class="card-body">
+                <div class="gratitude-entries" id="gratitudeEntries">
+                    <!-- 感恩记录将在这里显示 -->
+                    <div style="text-align: center; padding: 30px; color: #757575;">
+                        <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>开始记录你的第一个感恩瞬间吧！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>感恩日记 &copy; 2023 | 每天记录三件值得感恩的事，生活更美好</p>
+    </footer>
+
+    <script>
+        // 初始化日期为今天
+        document.getElementById('gratitudeDate').valueAsDate = new Date();
+
+        // 感恩语录数据
+        const gratitudeQuotes = [
+            { quote: "感恩是幸福的源泉，它让我们在平凡中发现不凡。", author: "— 感恩日记"
+            },
+            { quote: "当我们专注于感恩，我们会发现生活中充满了值得感谢的事物。", author: "— 佚名"
+            },
+            { quote: "感恩不只是一种情感，更是一种生活态度。", author: "— 稻盛和夫"
+            },
+            { quote: "感恩之心，是所有美德的根源。", author: "— 西塞罗"
+            },
+            { quote: "生活中并不缺少美，而是缺少发现美的眼睛和感恩的心。", author: "— 罗丹"
+            },
+            { quote: "感恩每一个微小的瞬间，它们共同构成了生命的美好。", author: "— 感恩日记"
+            },
+            { quote: "感谢生活中的不完美，它们让我们成长。", author: "— 佚名"
+            },
+            { quote: "感恩是一种力量，它能改变我们看待世界的方式。", author: "— 感恩日记"
+            }
+        ];
+
+        // 显示随机感恩语录
+        function newGratitudeQuote() {
+            const randomIndex = Math.floor(Math.random() * gratitudeQuotes.length);
+            const selectedQuote = gratitudeQuotes[randomIndex];
+            document.querySelector(".quote-text").textContent = selectedQuote.quote;
+            document.querySelector(".quote-author").textContent = selectedQuote.author;
+        }
+
+        // 使用感恩提示
+        function usePrompt(promptText) {
+            document.getElementById('gratitudeContent').value = promptText + '\n\n';
+            document.getElementById('gratitudeContent').focus();
+        }
+
+        // 保存感恩记录
+        document.getElementById('gratitudeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const content = document.getElementById('gratitudeContent').value;
+            const category = document.getElementById('gratitudeCategory').value;
+            const date = document.getElementById('gratitudeDate').value;
+
+            // 创建感恩记录对象
+            const gratitudeEntry = {
+                id: Date.now().toString(),
+                content: content,
+                category: category,
+                date: date,
+                timestamp: new Date().toISOString()
+            };
+
+            // 获取现有记录
+            let entries = JSON.parse(localStorage.getItem('gratitudeEntries')) || [];
+            entries.push(gratitudeEntry);
+
+            // 保存到本地存储
+            localStorage.setItem('gratitudeEntries', JSON.stringify(entries));
+
+            // 重新加载记录
+            loadGratitudeEntries();
+            updateStats();
+            renderCalendar();
+
+            // 重置表单
+            this.reset();
+            document.getElementById('gratitudeDate').valueAsDate = new Date();
+
+            // 显示成功提示
+            alert('感恩记录已保存！培养感恩之心，从记录开始。');
+        });
+
+        // 加载感恩记录
+        function loadGratitudeEntries() {
+            const entries = JSON.parse(localStorage.getItem('gratitudeEntries')) || [];
+            const entriesContainer = document.getElementById('gratitudeEntries');
+
+            // 按日期降序排序
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (entries.length === 0) {
+                entriesContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #757575;">
+                        <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>开始记录你的第一个感恩瞬间吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 生成记录HTML
+            entriesContainer.innerHTML = entries.map(entry => `
+                <div class="entry">
+                    <div class="entry-header">
+                        <div class="entry-date">${formatDate(entry.date)}</div>
+                        <div class="entry-category">${entry.category}</div>
+                    </div>
+                    <div class="entry-content">${entry.content.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            const entries = JSON.parse(localStorage.getItem('gratitudeEntries')) || [];
+            const totalEntriesEl = document.getElementById('totalEntries');
+            const streakDaysEl = document.getElementById('streakDays');
+            const monthEntriesEl = document.getElementById('monthEntries');
+            const topCategoryEl = document.getElementById('topCategory');
+
+            // 总记录数
+            totalEntriesEl.textContent = entries.length;
+
+            // 本月记录数
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            const monthEntries = entries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+            });
+            monthEntriesEl.textContent = monthEntries.length;
+
+            // 计算连续感恩天数
+            if (entries.length === 0) {
+                streakDaysEl.textContent = '0';
+            } else {
+                // 按日期排序
+                entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                const dates = entries.map(entry => new Date(entry.date).toDateString());
+                const uniqueDates = [...new Set(dates)];
+                uniqueDates.sort((a, b) => new Date(b) - new Date(a));
+
+                let streak = 1;
+                let prevDate = new Date(uniqueDates[0]);
+
+                for (let i = 1; i < uniqueDates.length; i++) {
+                    const currentDate = new Date(uniqueDates[i]);
+                    const diffTime = Math.abs(prevDate - currentDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        streak++;
+                        prevDate = currentDate;
+                    } else {
+                        break;
+                    }
+                }
+
+                streakDaysEl.textContent = streak;
+            }
+
+            // 最感恩的类别
+            if (entries.length > 0) {
+                const categoryCounts = {};
+                entries.forEach(entry => {
+                    categoryCounts[entry.category] = (categoryCounts[entry.category] || 0) + 1;
+                });
+
+                let topCategory = '';
+                let maxCount = 0;
+                for (const category in categoryCounts) {
+                    if (categoryCounts[category] > maxCount) {
+                        maxCount = categoryCounts[category];
+                        topCategory = category;
+                    }
+                }
+                topCategoryEl.textContent = topCategory || '未分类';
+            } else {
+                topCategoryEl.textContent = '-';
+            }
+        }
+
+        // 渲染日历
+        let currentCalendarDate = new Date();
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const calendarGrid = document.getElementById('calendarGrid');
+            const currentMonthEl = document.getElementById('currentMonth');
+
+            // 更新月份标题
+            currentMonthEl.textContent = `${year}年${month + 1}月`;
+
+            // 获取当月第一天
+            const firstDay = new Date(year, month, 1);
+            // 获取当月最后一天
+            const lastDay = new Date(year, month + 1, 0);
+
+            // 获取当月第一天是星期几 (0-6, 0是星期日)
+            const firstDayOfWeek = firstDay.getDay() || 7; // 转换为1-7, 1是星期一
+
+            // 清空日历
+            calendarGrid.innerHTML = '';
+
+            // 添加星期标题
+            const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+            weekdays.forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.style.fontWeight = 'bold';
+                dayEl.style.color = '#F57C00';
+                dayEl.textContent = day;
+                calendarGrid.appendChild(dayEl);
+            });
+
+            // 添加空白格子
+            for (let i = 1; i < firstDayOfWeek; i++) {
+                const emptyEl = document.createElement('div');
+                calendarGrid.appendChild(emptyEl);
+            }
+
+            // 获取当月的感恩记录
+            const entries = JSON.parse(localStorage.getItem('gratitudeEntries')) || [];
+            const monthEntries = entries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === month && entryDate.getFullYear() === year;
+            });
+            const entryDates = monthEntries.map(entry => new Date(entry.date).getDate());
+
+            // 添加日期格子
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = i;
+
+                // 检查今天
+                const today = new Date();
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayEl.classList.add('today');
+                }
+
+                // 检查是否有感恩记录
+                if (entryDates.includes(i)) {
+                    dayEl.classList.add('has-entry');
+                    dayEl.title = '有感恩记录';
+                }
+
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        // 切换月份
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            // 设置今天的日期
+            document.getElementById('gratitudeDate').valueAsDate = new Date();
+            // 加载感恩记录
+            loadGratitudeEntries();
+            // 更新统计
+            updateStats();
+            // 渲染日历
+            renderCalendar();
+        };
+    </script>
+</body>
+</html>
