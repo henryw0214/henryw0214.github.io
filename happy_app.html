@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快乐时光 - 心情提升APP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Comic Sans MS', 'Marker Felt', sans-serif; }
+        body { background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0; }
+        h1 { color: #ff6b6b; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        .tagline { color: #ff8e3c; font-size: 1.2rem; }
+        .mood-tracker { background-color: white; border-radius: 20px; padding: 20px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        .mood-title { font-size: 1.2rem; margin-bottom: 15px; color: #555; }
+        .mood-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .mood-btn { background-color: #f8f9fa; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .mood-btn:hover { transform: scale(1.1); }
+        .mood-btn.selected { transform: scale(1.1); box-shadow: 0 0 15px rgba(255, 107, 107, 0.5); }
+        .content-area { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .content-area { grid-template-columns: 1fr 1fr; } }
+        .card { background-color: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .card-title { color: #ff6b6b; font-size: 1.5rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .card-icon { font-size: 1.8rem; }
+        .joke-content { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; min-height: 80px; }
+        .joke-author { color: #777; font-style: italic; text-align: right; }
+        .btn { background-color: #ff6b6b; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .btn:hover { background-color: #ff5252; transform: translateY(-2px); }
+        .btn-icon { font-size: 1.2rem; }
+        .game-container { background-color: #fff8e1; border-radius: 15px; padding: 20px; margin-top: 15px; }
+        .memory-game { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .memory-card { height: 70px; background-color: #ff8e3c; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; transform-style: preserve-3d; transition: transform 0.3s; }
+        .memory-card.flipped { background-color: #fff; transform: rotateY(180deg); }
+        .quote-text { font-size: 1.2rem; font-style: italic; margin-bottom: 15px; line-height: 1.6; color: #555; }
+        .quote-author { text-align: right; color: #ff6b6b; font-weight: bold; }
+        .diary-input { width: 100%; padding: 15px; border: 2px solid #ffe0b2; border-radius: 15px; resize: none; font-size: 1rem; margin-bottom: 15px; min-height: 120px; }
+        .diary-entries { margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        .diary-entry { background-color: #fff8e1; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .entry-date { font-size: 0.8rem; color: #777; margin-bottom: 5px; }
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; animation: confetti 5s ease-in-out infinite; }
+        @keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(1000px) rotate(720deg); opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 快乐时光</h1>
+            <p class="tagline">每天给自己一点小确幸</p>
+        </header>
+
+        <div class="mood-tracker">
+            <div class="mood-title">今天感觉怎么样？</div>
+            <div class="mood-buttons">
+                <button class="mood-btn" onclick="selectMood(this)">😢</button>
+                <button class="mood-btn" onclick="selectMood(this)">😐</button>
+                <button class="mood-btn" onclick="selectMood(this)">🙂</button>
+                <button class="mood-btn" onclick="selectMood(this)">😊</button>
+                <button class="mood-btn" onclick="selectMood(this)">😄</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="card">
+                <div class="card-title"><span class="card-icon">😂</span> 今日笑话</div>
+                <div class="joke-content" id="joke-content">点击下方按钮获取一个笑话吧！</div>
+                <div class="joke-author" id="joke-author"></div>
+                <button class="btn" onclick="getRandomJoke()"><span class="btn-icon">🔄</span> 再来一个</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="card-icon">🧩</span> 记忆小游戏</div>
+                <p>翻转卡片找到相同的表情，锻炼记忆力的同时放松心情！</p>
+                <div class="game-container">
+                    <div class="memory-game" id="memory-game"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="card-icon">💭</span> 积极语录</div>
+                <div class="quote-text" id="quote-text">点击按钮获取一句正能量语录</div>
+                <div class="quote-author" id="quote-author"></div>
+                <button class="btn" onclick="getRandomQuote()"><span class="btn-icon">✨</span> 新的语录</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="card-icon">📖</span> 心情日记</div>
+                <p>记录下今天的开心小事，让快乐有迹可循</p>
+                <textarea class="diary-input" placeholder="写下今天让你开心的事情..." id="diary-input"></textarea>
+                <button class="btn" onclick="saveDiaryEntry()"><span class="btn-icon">💾</span> 保存日记</button>
+                <div class="diary-entries" id="diary-entries"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 笑话库
+        const jokes = [
+            { content: "为什么数学书总是很忧郁？因为它有太多的问题。", author: "—— 匿名数学家" },
+            { content: "我问我的狗：'你开心吗？' 它说：'汪！' 我想那是'是'的意思。", author: "—— 爱狗人士" },
+            { content: "为什么程序员总是混淆圣诞节和万圣节？因为 Oct 31 == Dec 25。", author: "—— 极客笑话集" },
+            { content: "我试着写一本关于反重力的书，结果根本写不下去。", author: "—— 物理学家的幽默" },
+            { content: "为什么海绵宝宝住在菠萝里？因为他是个'菠萝'蜜！", author: "—— 儿童笑话大全" },
+            { content: "我告诉我的电脑我需要一个休息，它给了我一个蓝屏。", author: "—— IT工作者的日常" },
+            { content: "为什么稻草人能得奖？因为他在自己的领域里表现出众。", author: "—— 农场幽默" },
+            { content: "我买了一本关于隐身的书，可是我找不到它了。", author: "—— 奇幻爱好者" }
+        ];
+
+        // 积极语录库
+        const quotes = [
+            { text: "每天都是新的开始，带着微笑和勇气去迎接它。", author: "—— 生活箴言" },
+            { text: "快乐不是因为拥有的多，而是计较的少。", author: "—— 智慧语录" },
+            { text: "你今天的小努力，明天会成为大成就。", author: "—— 成功法则" },
+            { text: "即使在最黑暗的时刻，也总有一丝光明等着你发现。", author: "—— 希望语录" },
+            { text: "微笑是免费的，但它的价值却是无价的。", author: "—— 幸福之道" },
+            { text: "生活就像一面镜子，你对它笑，它就对你笑。", author: "—— 心态决定一切" },
+            { text: "每一个微小的快乐，都是生活赐予的礼物。", author: "—— 感恩语录" },
+            { text: "你不需要很厉害才能开始，但你需要开始才能很厉害。", author: "—— 行动哲学" }
+        ];
+
+        // 记忆游戏表情
+        const memoryEmojis = ['😊', '😂', '😍', '🤩', '🥳', '🤪', '🤗', '🤭'];
+
+        // DOM元素
+        const jokeContent = document.getElementById('joke-content');
+        const jokeAuthor = document.getElementById('joke-author');
+        const quoteText = document.getElementById('quote-text');
+        const quoteAuthor = document.getElementById('quote-author');
+        const memoryGame = document.getElementById('memory-game');
+        const diaryInput = document.getElementById('diary-input');
+        const diaryEntries = document.getElementById('diary-entries');
+
+        // 选择心情
+        function selectMood(button) {
+            // 移除其他按钮的选中状态
+            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected'));
+            // 添加当前按钮的选中状态
+            button.classList.add('selected');
+
+            // 根据心情显示不同的反馈
+            const mood = button.textContent;
+            let message = '';
+            switch(mood) {
+                case '😢': message = '没关系，一切都会好起来的！看看笑话吧～'; break;
+                case '😐': message = '今天一般般吗？让我们做点什么让它变得更好！'; break;
+                case '🙂': message = '不错哦！继续保持这份好心情！'; break;
+                case '😊': message = '太棒了！你的笑容就是最美的风景！'; break;
+                case '😄': message = '超级开心！让我们一起把快乐传染给更多人！'; break;
+            }
+
+            // 显示消息并添加动画效果
+            showNotification(message);
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = 'rgba(255, 107, 107, 0.9)';
+            notification.style.color = 'white';
+            notification.style.padding = '15px 25px';
+            notification.style.borderRadius = '30px';
+            notification.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            notification.style.zIndex = '1000';
+            notification.style.transition = 'all 0.5s ease';
+            notification.style.opacity = '0';
+            notification.textContent = message;
+
+            // 添加到页面
+            document.body.appendChild(notification);
+
+            // 显示动画
+            setTimeout(() => notification.style.opacity = '1', 10);
+
+            // 3秒后移除
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 500);
+            }, 3000);
+        }
+
+        // 获取随机笑话
+        function getRandomJoke() {
+            const randomIndex = Math.floor(Math.random() * jokes.length);
+            const joke = jokes[randomIndex];
+            jokeContent.textContent = joke.content;
+            jokeAuthor.textContent = joke.author;
+
+            // 添加淡入效果
+            jokeContent.style.opacity = '0';
+            jokeAuthor.style.opacity = '0';
+            setTimeout(() => {
+                jokeContent.style.transition = 'opacity 0.5s ease';
+                jokeAuthor.style.transition = 'opacity 0.5s ease';
+                jokeContent.style.opacity = '1';
+                jokeAuthor.style.opacity = '1';
+            }, 50);
+        }
+
+        // 获取随机语录
+        function getRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const quote = quotes[randomIndex];
+            quoteText.textContent = quote.text;
+            quoteAuthor.textContent = quote.author;
+
+            // 添加淡入效果
+            quoteText.style.opacity = '0';
+            quoteAuthor.style.opacity = '0';
+            setTimeout(() => {
+                quoteText.style.transition = 'opacity 0.5s ease';
+                quoteAuthor.style.transition = 'opacity 0.5s ease';
+                quoteText.style.opacity = '1';
+                quoteAuthor.style.opacity = '1';
+            }, 50);
+        }
+
+        // 初始化记忆游戏
+        function initMemoryGame() {
+            // 创建双倍的表情数组（每对两个）
+            const cards = [...memoryEmojis, ...memoryEmojis];
+            // 洗牌
+            cards.sort(() => Math.random() - 0.5);
+
+            // 清空游戏容器
+            memoryGame.innerHTML = '';
+
+            // 创建卡片元素
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                card.addEventListener('click', flipCard);
+                memoryGame.appendChild(card);
+            });
+        }
+
+        // 翻牌逻辑
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        function flipCard() {
+            // 如果已经翻开两张牌或点击的是已经翻开的牌，则不执行
+            if (flippedCards.length >= 2 || this.classList.contains('flipped')) return;
+
+            // 翻牌
+            this.classList.add('flipped');
+            this.textContent = this.dataset.emoji;
+            flippedCards.push(this);
+
+            // 如果翻开了两张牌，检查是否匹配
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        // 检查匹配
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.emoji === card2.dataset.emoji) {
+                // 匹配成功
+                card1.removeEventListener('click', flipCard);
+                card2.removeEventListener('click', flipCard);
+                matchedPairs++;
+
+                // 如果所有牌都匹配成功
+                if (matchedPairs === memoryEmojis.length) {
+                    setTimeout(() => {
+                        showNotification('恭喜你完成了游戏！🎉');
+                        createConfetti();
+                        // 3秒后重新开始游戏
+                        setTimeout(initMemoryGame, 3000);
+                    }, 500);
+                }
+            } else {
+                // 匹配失败，翻回去
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.textContent = '';
+                card2.textContent = '';
+            }
+
+            // 重置翻牌数组
+            flippedCards = [];
+        }
+
+        // 创建庆祝彩屑
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#ffda79', '#63d471', '#4dd0e1', '#7e57c2'];
+            const confettiCount = 100;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.top = `-${Math.random() * 20 + 10}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                document.body.appendChild(confetti);
+
+                // 动画结束后移除元素
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        // 保存日记条目
+        function saveDiaryEntry() {
+            const content = diaryInput.value.trim();
+            if (!content) return;
+
+            // 创建日记条目元素
+            const entry = document.createElement('div');
+            entry.className = 'diary-entry';
+
+            // 添加日期
+            const date = new Date();
+            const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            entry.innerHTML = `<div class="entry-date">${dateString}</div><div>${content}</div>`;
+
+            // 添加到日记列表的顶部
+            diaryEntries.prepend(entry);
+
+            // 清空输入框
+            diaryInput.value = '';
+
+            // 显示成功通知
+            showNotification('日记保存成功！记录快乐是个好习惯！');
+
+            // 添加动画效果
+            entry.style.opacity = '0';
+            entry.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                entry.style.transition = 'all 0.5s ease';
+                entry.style.opacity = '1';
+                entry.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        // 初始化
+        window.onload = function() {
+            // 加载一个随机笑话
+            getRandomJoke();
+            // 加载一个随机语录
+            getRandomQuote();
+            // 初始化记忆游戏
+            initMemoryGame();
+        };
+    </script>
+</body>
+</html>
